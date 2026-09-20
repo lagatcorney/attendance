@@ -274,6 +274,58 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* ==== ERROR PANEL STYLES ==== */
+        .error-panel {
+            max-width: 700px;
+            background: #fff;
+            color: #111;
+            padding: 30px;
+            border-radius: 18px;
+            text-align: left;
+            font-size: 1rem;
+            line-height: 1.6;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .error-panel h3 {
+            color: #b00020;
+            margin-top: 0;
+        }
+        .error-panel .code {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #b00020;
+            display: inline-block;
+            margin: 4px 0;
+        }
+        .error-panel ul {
+            padding-left: 20px;
+        }
+        .error-panel li {
+            margin-bottom: 6px;
+        }
+        .error-panel .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .error-panel button {
+            background: #0b1f6b;
+            margin: 0;
+        }
+        .error-panel button:hover {
+            background: #071545;
+        }
+        .error-panel .retry-btn {
+            background: maroon;
+        }
+        .error-panel .retry-btn:hover {
+            background: #800000;
+        }
     </style>
 </head>
 
@@ -282,7 +334,7 @@
 <!-- Loading overlay -->
 <div id="loadingOverlay" class="loading-overlay">
     <div class="spinner"></div>
-    <div>Connecting to Firebase…</div>
+    <div id="loadingMessage">Connecting to Firebase…</div>
 </div>
 
 <div class="main-card" id="mainApp" style="display:none;">
@@ -401,12 +453,15 @@
 
 </div>
 
+<!-- ============================================================
+     MAIN SCRIPT
+============================================================ -->
 <script type="module">
     /* ============================================================
        FIREBASE IMPORTS & CONFIG
     ============================================================ */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot }
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot }
         from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -425,11 +480,11 @@
     /* ============================================================
        GLOBAL STATE
     ============================================================ */
-    let schoolData = {};            // full state from Firestore
-    let currentClass = null;        // selected class name
+    let schoolData = {};
+    let currentClass = null;
     let isTrainer = false;
     let currentStudentAdmission = null;
-    let unsubscribe = null;         // Firestore listener
+    let unsubscribe = null;
 
     const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
     const DOC_REF = doc(db, "attendanceSystem", "schoolData");
@@ -471,18 +526,82 @@
     }
 
     /* ============================================================
-       FIRESTORE: SAVE (debounced writes)
+       ERROR DISPLAY (always reliable)
+    ============================================================ */
+    function showError(title, err) {
+        const overlay = document.getElementById("loadingOverlay");
+        overlay.classList.remove("hidden");
+
+        // Build safe text
+        const errorCode = (err && err.code) ? String(err.code) : "unknown";
+        const errorMessage = (err && err.message) ? String(err.message) : String(err || "No message");
+
+        // Determine likely cause based on error code
+        let hint = "";
+        if (errorCode.includes("permission-denied") || errorMessage.toLowerCase().includes("permission")) {
+            hint = `<h4>🔑 Likely Cause: Firestore Security Rules</h4>
+                    <p>Your Firestore database is denying read access. Update your rules in the
+                    <strong>Firebase Console → Firestore Database → Rules</strong> tab. See the
+                    security rules below.</p>`;
+        } else if (errorCode.includes("not-found") || errorMessage.includes("does not exist")) {
+            hint = `<h4>🗄️ Likely Cause: Firestore Database Not Created</h4>
+                    <p>Go to <strong>Firebase Console → Firestore Database → Create Database</strong>
+                    and choose <em>Start in test mode</em>.</p>`;
+        } else if (errorMessage.toLowerCase().includes("offline") || errorMessage.toLowerCase().includes("network")) {
+            hint = `<h4>📡 Likely Cause: Network / Firewall</h4>
+                    <p>Your browser can't reach <code>firestore.googleapis.com</code>. Check your internet
+                    connection, disable VPN, or try another network.</p>`;
+        } else if (errorMessage.toLowerCase().includes("cors") || errorMessage.toLowerCase().includes("module")) {
+            hint = `<h4>🌐 Likely Cause: ES Modules Blocked</h4>
+                    <p>You're probably opening this file directly (<code>file://</code>) or embedding it in
+                    a sandboxed environment. You must serve it over <strong>HTTP/HTTPS</strong>.</p>`;
+        }
+
+        overlay.innerHTML = `
+            <div class="error-panel">
+                <h3>❌ ${title}</h3>
+                <p><strong>Error code:</strong> <span class="code">${escapeHtml(errorCode)}</span></p>
+                <p><strong>Message:</strong> <span class="code">${escapeHtml(errorMessage)}</span></p>
+                ${hint}
+                <h4>🔧 Required Firestore Security Rules</h4>
+                <p>Paste this into <strong>Firebase Console → Firestore Database → Rules</strong>:</p>
+<pre style="background:#0b1f6b;color:#fff;padding:14px;border-radius:10px;font-size:0.85rem;overflow:auto;">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /attendanceSystem/{doc} {
+      allow read, write: if true;   // ⚠️ TESTING ONLY
+    }
+  }
+}</pre>
+                <div class="actions">
+                    <button class="retry-btn" onclick="location.reload()">🔄 Retry</button>
+                    <button onclick="window.open('https://console.firebase.google.com/project/attendance-a09e4/firestore/rules','_blank')">🔐 Open Firestore Rules</button>
+                    <button onclick="window.open('https://console.firebase.google.com/project/attendance-a09e4/firestore','_blank')">🗄️ Open Firestore</button>
+                </div>
+            </div>`;
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    /* ============================================================
+       FIRESTORE: SAVE (debounced)
     ============================================================ */
     let saveTimeout = null;
     function saveData() {
-        // Debounce to avoid rapid writes during batch operations
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(async () => {
             try {
                 await setDoc(DOC_REF, schoolData, { merge: true });
             } catch (err) {
                 console.error("Firestore save error:", err);
-                alert("⚠️ Could not save to Firebase. Check your connection.");
+                // Don't spam alerts; log only
             }
         }, 400);
     }
@@ -496,16 +615,13 @@
             if (snapshot.exists()) {
                 schoolData = snapshot.data() || {};
             } else {
-                // First time: initialize empty structure
                 schoolData = {};
                 setDoc(DOC_REF, schoolData).catch(err => console.error(err));
             }
-            // Ensure currentClass is valid
             const classKeys = Object.keys(schoolData);
             if (!currentClass || !schoolData[currentClass]) {
                 currentClass = classKeys.length > 0 ? classKeys[0] : null;
             }
-            // Ensure attendance defaults
             if (currentClass && schoolData[currentClass]) {
                 const cls = schoolData[currentClass];
                 if (cls.lessons) {
@@ -519,11 +635,10 @@
                     });
                 }
             }
-            // Refresh UI
             refreshAllUI();
         }, (err) => {
             console.error("Firestore listen error:", err);
-            alert("❌ Could not connect to Firebase. Please refresh the page.");
+            showError("Firebase Connection Lost", err);
         });
     }
 
@@ -585,7 +700,6 @@
 
         body.innerHTML = "";
 
-        // Determine highlight
         if (!currentStudentAdmission && cls.students.length > 0) {
             currentStudentAdmission = cls.students[0].admission;
         }
@@ -884,13 +998,12 @@
         sendToGoogleForm(currentClass, admission, student.name, lesson, status);
 
         saveData();
-        // UI updates through onSnapshot listener, but re-render locally for instant feedback
         renderTrainerTable();
         renderStudentTable();
     }
 
     /* ============================================================
-       GOOGLE FORM (kept from original)
+       GOOGLE FORM
     ============================================================ */
     const googleFormURL = "https://docs.google.com/forms/d/e/1FAIpQLScPUasc-yRAGVqQeiTWEA9o9BBg_MPepkI8euYhy3ewq6KXag/formResponse";
     const formEntryIDs = {
@@ -940,50 +1053,63 @@
     }
 
     /* ============================================================
-       INITIALIZATION
+       INITIALIZATION (with bullet-proof error handling)
     ============================================================ */
     async function initializeApp() {
         try {
-            // Load initial data once
-            const snap = await getDoc(DOC_REF);
+            console.log("▶ initializeApp started");
+            console.log("▶ Project:", firebaseConfig.projectId);
+            console.log("▶ Doc path:", DOC_REF.path);
+
+            // Set a timeout in case getDoc hangs
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Firebase did not respond within 15 seconds. Check your internet connection or Firestore rules.")), 15000)
+            );
+
+            const snap = await Promise.race([getDoc(DOC_REF), timeoutPromise]);
+            console.log("▶ getDoc returned, exists =", snap.exists());
+
             if (!snap.exists()) {
+                console.log("▶ No document exists; creating empty one");
                 await setDoc(DOC_REF, {});
                 schoolData = {};
             } else {
                 schoolData = snap.data() || {};
+                console.log("▶ Loaded schoolData keys:", Object.keys(schoolData));
             }
 
-            // Set up default current class
             const classKeys = Object.keys(schoolData);
-            if (classKeys.length > 0) {
-                currentClass = classKeys[0];
-            } else {
-                currentClass = null;
-            }
+            currentClass = classKeys.length > 0 ? classKeys[0] : null;
 
             // Hide loading, show app
             document.getElementById("loadingOverlay").classList.add("hidden");
             document.getElementById("mainApp").style.display = "block";
 
-            // Initial render
             refreshAllUI();
-
-            // Start real-time listener (keeps data synced across devices)
             startFirestoreListener();
+            console.log("✅ App initialized successfully");
 
         } catch (err) {
-            console.error("Initialization error:", err);
-            document.getElementById("loadingOverlay").innerHTML =
-                `<div style="color:#ffc107; text-align:center; padding:20px;">
-                    ❌ Failed to connect to Firebase.<br>
-                    <small>${err.message}</small><br><br>
-                    <button onclick="location.reload()" style="background:maroon;">Retry</button>
-                </div>`;
+            console.error("❌ Initialization error:", err);
+            // Always display the error — bulletproof
+            try {
+                showError("Failed to Connect to Firebase", err);
+            } catch (displayErr) {
+                // Absolute last resort: raw alert + text
+                console.error("Even showError failed:", displayErr);
+                alert("❌ Firebase error: " + (err && err.message ? err.message : String(err)));
+                document.getElementById("loadingOverlay").innerHTML =
+                    `<div style="color:#fff;padding:30px;text-align:center;">
+                        ❌ Firebase connection failed<br>
+                        <small>${String(err && err.message ? err.message : err)}</small><br><br>
+                        <button onclick="location.reload()" style="background:maroon;color:white;padding:10px 20px;border:none;border-radius:8px;">Retry</button>
+                    </div>`;
+            }
         }
     }
 
     /* ============================================================
-       EXPOSE FUNCTIONS TO HTML (inline onclick handlers)
+       EXPOSE FUNCTIONS TO HTML
     ============================================================ */
     window.toggleAttendance = toggleAttendance;
     window.toggleTrainerMode = toggleTrainerMode;
