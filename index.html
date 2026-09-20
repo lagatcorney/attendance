@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance · Student & Trainer View (Firebase)</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: "Times New Roman", serif;
@@ -19,7 +17,6 @@
             min-height: 100vh;
             padding: 20px;
         }
-
         .main-card {
             background: rgba(255, 255, 255, 0.10);
             backdrop-filter: blur(16px);
@@ -31,307 +28,116 @@
             color: white;
             margin: 20px 0;
         }
-
-        h2, h3 {
-            font-weight: 400;
-            letter-spacing: 0.5px;
-            margin-top: 0;
-        }
-
-        hr {
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin: 20px 0;
-        }
-
+        h2, h3 { font-weight: 400; letter-spacing: 0.5px; margin-top: 0; }
+        hr { border: 1px solid rgba(255, 255, 255, 0.2); margin: 20px 0; }
         input, select {
-            padding: 10px 14px;
-            margin: 5px 5px 5px 0;
-            border-radius: 10px;
-            border: none;
-            font-size: 1rem;
-            font-family: inherit;
-            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 14px; margin: 5px 5px 5px 0;
+            border-radius: 10px; border: none; font-size: 1rem;
+            font-family: inherit; background: rgba(255, 255, 255, 0.9);
         }
-
         button {
-            padding: 10px 20px;
-            background: maroon;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: 0.2s;
+            padding: 10px 20px; background: maroon; color: white;
+            border: none; border-radius: 10px; cursor: pointer;
+            font-size: 1rem; font-family: inherit; transition: 0.2s;
             margin: 5px 5px 5px 0;
         }
-
-        button:hover {
-            background: #800000;
-            transform: scale(0.98);
-        }
-
-        button:disabled {
-            background: #555;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        .btn-trainer {
-            background: #0b1f6b;
-        }
-        .btn-trainer:hover {
-            background: #071545;
-        }
-
-        .btn-logout {
-            background: #4a1c1c;
-        }
-        .btn-logout:hover {
-            background: #2e0f0f;
-        }
-
+        button:hover { background: #800000; transform: scale(0.98); }
+        button:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
+        .btn-trainer { background: #0b1f6b; }
+        .btn-trainer:hover { background: #071545; }
+        .btn-logout { background: #4a1c1c; }
+        .btn-logout:hover { background: #2e0f0f; }
         .badge {
-            background: #0b1f6b;
-            padding: 5px 16px;
-            border-radius: 30px;
-            font-size: 0.9rem;
-            display: inline-block;
-            margin-left: 10px;
+            background: #0b1f6b; padding: 5px 16px; border-radius: 30px;
+            font-size: 0.9rem; display: inline-block; margin-left: 10px;
         }
-
-        .badge-warning {
-            background: #ffc107;
-            color: #0b1f6b;
-            font-weight: bold;
-        }
-
         .scroll-container {
-            overflow-x: auto;
-            margin-top: 15px;
-            border-radius: 14px;
+            overflow-x: auto; margin-top: 15px; border-radius: 14px;
             background: rgba(0, 0, 0, 0.15);
         }
-
         table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            color: #111;
-            font-size: 0.9rem;
-            border-radius: 14px;
-            overflow: hidden;
+            width: 100%; border-collapse: collapse; background: white;
+            color: #111; font-size: 0.9rem; border-radius: 14px; overflow: hidden;
         }
-
-        th {
-            background: maroon;
-            color: white;
-            padding: 8px 6px;
-            white-space: nowrap;
-            font-weight: 500;
-        }
-
-        td {
-            border: 1px solid #ddd;
-            padding: 6px 8px;
-            text-align: center;
-        }
-
+        th { background: maroon; color: white; padding: 8px 6px; white-space: nowrap; font-weight: 500; }
+        td { border: 1px solid #ddd; padding: 6px 8px; text-align: center; }
         .lesson-header {
-            font-size: 0.7rem;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            max-height: 90px;
-            white-space: nowrap;
-            padding: 6px 2px;
-            font-weight: 400;
+            font-size: 0.7rem; writing-mode: vertical-rl; transform: rotate(180deg);
+            max-height: 90px; white-space: nowrap; padding: 6px 2px; font-weight: 400;
         }
-
-        .highlight-you {
-            background: #fff3cd !important;
-            font-weight: bold;
-        }
-
-        .student-name-highlight {
-            background: #fff3cd;
-            font-weight: bold;
-        }
-
+        .highlight-you { background: #fff3cd !important; font-weight: bold; }
+        .student-name-highlight { background: #fff3cd; font-weight: bold; }
         .info-note {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 12px 18px;
-            border-radius: 12px;
-            font-size: 1rem;
-            border-left: 4px solid #ffc107;
+            background: rgba(255, 255, 255, 0.08); padding: 12px 18px;
+            border-radius: 12px; font-size: 1rem; border-left: 4px solid #ffc107;
             margin-bottom: 10px;
         }
-
         .role-badge {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            background: #ffc107;
-            color: #0b1f6b;
-            font-weight: bold;
-            margin-left: 10px;
+            display: inline-block; padding: 4px 14px; border-radius: 30px;
+            font-size: 0.85rem; background: #ffc107; color: #0b1f6b;
+            font-weight: bold; margin-left: 10px;
         }
-
         .trainer-panel {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.3); border-radius: 16px;
+            padding: 20px; margin-top: 10px;
         }
-
-        .flex-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .small-input {
-            width: 180px;
-        }
-
-        .attendance-check {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            accent-color: maroon;
-        }
-
-        .attendance-check:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        .locked-cell {
-            background: #f8d7da;
-            position: relative;
-        }
-
+        .flex-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .small-input { width: 180px; }
+        .attendance-check { width: 22px; height: 22px; cursor: pointer; accent-color: maroon; }
+        .attendance-check:disabled { cursor: not-allowed; opacity: 0.5; }
+        .locked-cell { background: #f8d7da; position: relative; }
         .locked-cell::after {
-            content: "🔒";
-            font-size: 0.7rem;
-            position: absolute;
-            top: 2px;
-            right: 2px;
+            content: "🔒"; font-size: 0.7rem; position: absolute; top: 2px; right: 2px;
         }
-
         .past-lock-note {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 10px 16px;
-            border-radius: 10px;
-            margin-top: 10px;
-            font-size: 0.9rem;
+            background: #f8d7da; color: #721c24; padding: 10px 16px;
+            border-radius: 10px; margin-top: 10px; font-size: 0.9rem;
             border-left: 4px solid #dc3545;
         }
-
         .schedule-list {
-            margin-top: 10px;
-            background: rgba(255,255,255,0.1);
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 0.9rem;
+            margin-top: 10px; background: rgba(255,255,255,0.1);
+            padding: 10px 15px; border-radius: 10px; font-size: 0.9rem;
         }
-
         .schedule-list span {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 3px 10px;
-            border-radius: 20px;
-            margin: 3px;
+            display: inline-block; background: rgba(255,255,255,0.2);
+            padding: 3px 10px; border-radius: 20px; margin: 3px;
         }
-
         .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(11,31,107,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            color: white;
-            font-size: 1.5rem;
-            flex-direction: column;
-            gap: 20px;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11,31,107,0.9); display: flex;
+            justify-content: center; align-items: center; z-index: 9999;
+            color: white; font-size: 1.5rem; flex-direction: column; gap: 20px;
         }
-        .loading-overlay.hidden {
-            display: none;
-        }
+        .loading-overlay.hidden { display: none; }
         .spinner {
             border: 6px solid rgba(255,255,255,0.3);
-            border-top: 6px solid #ffc107;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
+            border-top: 6px solid #ffc107; border-radius: 50%;
+            width: 60px; height: 60px; animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* ==== ERROR PANEL STYLES ==== */
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .error-panel {
-            max-width: 700px;
-            background: #fff;
-            color: #111;
-            padding: 30px;
-            border-radius: 18px;
-            text-align: left;
-            font-size: 1rem;
-            line-height: 1.6;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            max-width: 700px; background: #fff; color: #111; padding: 30px;
+            border-radius: 18px; text-align: left; font-size: 1rem;
+            line-height: 1.6; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-        .error-panel h3 {
-            color: #b00020;
-            margin-top: 0;
-        }
+        .error-panel h3 { color: #b00020; margin-top: 0; }
         .error-panel .code {
-            background: #f5f5f5;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.9rem;
-            color: #b00020;
-            display: inline-block;
-            margin: 4px 0;
-        }
-        .error-panel ul {
-            padding-left: 20px;
-        }
-        .error-panel li {
-            margin-bottom: 6px;
+            background: #f5f5f5; padding: 8px 12px; border-radius: 8px;
+            font-family: monospace; font-size: 0.9rem; color: #b00020;
+            display: inline-block; margin: 4px 0;
         }
         .error-panel .actions {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;
         }
-        .error-panel button {
-            background: #0b1f6b;
-            margin: 0;
-        }
-        .error-panel button:hover {
-            background: #071545;
-        }
-        .error-panel .retry-btn {
-            background: maroon;
-        }
-        .error-panel .retry-btn:hover {
-            background: #800000;
-        }
+        .error-panel button { background: #0b1f6b; margin: 0; }
+        .error-panel button:hover { background: #071545; }
+        .error-panel .retry-btn { background: maroon; }
+        .error-panel .retry-btn:hover { background: #800000; }
     </style>
 </head>
 
 <body>
 
-<!-- Loading overlay -->
 <div id="loadingOverlay" class="loading-overlay">
     <div class="spinner"></div>
     <div id="loadingMessage">Connecting to Firebase…</div>
@@ -339,7 +145,6 @@
 
 <div class="main-card" id="mainApp" style="display:none;">
 
-    <!-- ================= HEADER ================= -->
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
         <h2>📋 ATTENDANCE MANAGEMENT · 36 LESSONS</h2>
         <div>
@@ -349,20 +154,16 @@
         </div>
     </div>
 
-    <!-- ================= STUDENT VIEW ================= -->
     <div id="studentView">
-
         <div class="info-note">
             👋 Welcome! Select a class below to view the full attendance register.
             Your name is <strong>highlighted</strong> in the table.
         </div>
-
         <div class="flex-row">
             <label style="font-size:1.1rem;">📚 Select Class:</label>
             <select id="studentClassSelector" onchange="onStudentClassChange()" style="min-width:200px;"></select>
             <span class="badge" id="studentLessonBadge">0 lessons</span>
         </div>
-
         <div class="scroll-container">
             <table>
                 <thead>
@@ -374,37 +175,28 @@
                 <tbody id="studentTableBody"></tbody>
             </table>
         </div>
-
         <p style="margin-top:15px; font-size:0.95rem; opacity:0.85;">
             ✅ = Present &nbsp; | &nbsp; ❌ = Absent &nbsp; | &nbsp; % = Attendance percentage
         </p>
     </div>
 
-    <!-- ================= TRAINER VIEW ================= -->
     <div id="trainerView" style="display:none;">
-
         <div class="trainer-panel">
-
             <h3>🔧 Trainer Management Panel</h3>
-
             <h4>Class Management</h4>
             <div class="flex-row">
                 <input type="text" id="newClassName" placeholder="Enter Class Name" class="small-input">
                 <button onclick="createClass()">➕ Create Class</button>
                 <select id="trainerClassSelector" onchange="onTrainerClassChange()" style="min-width:180px;"></select>
             </div>
-
             <hr>
-
             <h4>Add Student</h4>
             <div class="flex-row">
                 <input type="text" id="studentName" placeholder="Student Name">
                 <input type="text" id="admissionNumber" placeholder="Admission Number">
                 <button onclick="addStudent()">➕ Add Student</button>
             </div>
-
             <hr>
-
             <h4>Set Timetable & Generate 36 Lessons</h4>
             <div class="flex-row">
                 <select id="classDay">
@@ -425,11 +217,8 @@
                 <span class="badge" id="trainerLessonBadge">0 lessons</span>
                 <button onclick="resetLessons()" class="btn-logout">🗑️ Clear Lessons</button>
             </div>
-
             <div id="scheduleListDisplay" class="schedule-list"></div>
-
             <hr>
-
             <h4>Attendance Register (Trainer – click to toggle)</h4>
             <div id="lockNotice" class="past-lock-note" style="display:none;">
                 🔒 Lessons older than 3 days are locked and cannot be modified.
@@ -445,7 +234,6 @@
                     <tbody id="trainerTableBody"></tbody>
                 </table>
             </div>
-
             <br>
             <button onclick="downloadCSV()">📥 Download Attendance CSV</button>
         </div>
@@ -454,16 +242,15 @@
 </div>
 
 <!-- ============================================================
-     MAIN SCRIPT
+     SINGLE MODULE SCRIPT — nothing else below this
 ============================================================ -->
 <script type="module">
-    /* ============================================================
-       FIREBASE IMPORTS & CONFIG
-    ============================================================ */
+    /* ---- Imports ---- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, onSnapshot }
         from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    /* ---- Config ---- */
     const firebaseConfig = {
         apiKey: "AIzaSyAcdt4oap5wg7C-YVLSNyhbZS6BUGgBlB8",
         authDomain: "attendance-a09e4.firebaseapp.com",
@@ -477,9 +264,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    /* ============================================================
-       GLOBAL STATE
-    ============================================================ */
+    /* ---- State ---- */
     let schoolData = {};
     let currentClass = null;
     let isTrainer = false;
@@ -489,9 +274,7 @@
     const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
     const DOC_REF = doc(db, "attendanceSystem", "schoolData");
 
-    /* ============================================================
-       HELPERS
-    ============================================================ */
+    /* ---- Helpers ---- */
     function formatLessonDisplay(lessonKey) {
         const parts = lessonKey.split('_');
         const datePart = parts[0];
@@ -525,74 +308,52 @@
         return ((present / total) * 100).toFixed(1);
     }
 
-    /* ============================================================
-       ERROR DISPLAY (always reliable)
-    ============================================================ */
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function showError(title, err) {
         const overlay = document.getElementById("loadingOverlay");
         overlay.classList.remove("hidden");
-
-        // Build safe text
         const errorCode = (err && err.code) ? String(err.code) : "unknown";
         const errorMessage = (err && err.message) ? String(err.message) : String(err || "No message");
-
-        // Determine likely cause based on error code
         let hint = "";
         if (errorCode.includes("permission-denied") || errorMessage.toLowerCase().includes("permission")) {
             hint = `<h4>🔑 Likely Cause: Firestore Security Rules</h4>
-                    <p>Your Firestore database is denying read access. Update your rules in the
-                    <strong>Firebase Console → Firestore Database → Rules</strong> tab. See the
-                    security rules below.</p>`;
-        } else if (errorCode.includes("not-found") || errorMessage.includes("does not exist")) {
-            hint = `<h4>🗄️ Likely Cause: Firestore Database Not Created</h4>
-                    <p>Go to <strong>Firebase Console → Firestore Database → Create Database</strong>
-                    and choose <em>Start in test mode</em>.</p>`;
+                    <p>Update your rules in <strong>Firebase Console → Firestore → Rules</strong>.</p>`;
         } else if (errorMessage.toLowerCase().includes("offline") || errorMessage.toLowerCase().includes("network")) {
             hint = `<h4>📡 Likely Cause: Network / Firewall</h4>
-                    <p>Your browser can't reach <code>firestore.googleapis.com</code>. Check your internet
-                    connection, disable VPN, or try another network.</p>`;
+                    <p>Cannot reach <code>firestore.googleapis.com</code>. Check internet or disable VPN.</p>`;
         } else if (errorMessage.toLowerCase().includes("cors") || errorMessage.toLowerCase().includes("module")) {
             hint = `<h4>🌐 Likely Cause: ES Modules Blocked</h4>
-                    <p>You're probably opening this file directly (<code>file://</code>) or embedding it in
-                    a sandboxed environment. You must serve it over <strong>HTTP/HTTPS</strong>.</p>`;
+                    <p>Host this file over HTTP/HTTPS.</p>`;
         }
-
         overlay.innerHTML = `
             <div class="error-panel">
-                <h3>❌ ${title}</h3>
+                <h3>❌ ${escapeHtml(title)}</h3>
                 <p><strong>Error code:</strong> <span class="code">${escapeHtml(errorCode)}</span></p>
                 <p><strong>Message:</strong> <span class="code">${escapeHtml(errorMessage)}</span></p>
                 ${hint}
-                <h4>🔧 Required Firestore Security Rules</h4>
-                <p>Paste this into <strong>Firebase Console → Firestore Database → Rules</strong>:</p>
+                <h4>🔧 Firestore Rules (test mode)</h4>
 <pre style="background:#0b1f6b;color:#fff;padding:14px;border-radius:10px;font-size:0.85rem;overflow:auto;">rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /attendanceSystem/{doc} {
-      allow read, write: if true;   // ⚠️ TESTING ONLY
+      allow read, write: if true;
     }
   }
 }</pre>
                 <div class="actions">
                     <button class="retry-btn" onclick="location.reload()">🔄 Retry</button>
-                    <button onclick="window.open('https://console.firebase.google.com/project/attendance-a09e4/firestore/rules','_blank')">🔐 Open Firestore Rules</button>
-                    <button onclick="window.open('https://console.firebase.google.com/project/attendance-a09e4/firestore','_blank')">🗄️ Open Firestore</button>
+                    <button onclick="window.open('https://console.firebase.google.com/project/attendance-a09e4/firestore/rules','_blank')">🔐 Open Rules</button>
                 </div>
             </div>`;
     }
 
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    /* ============================================================
-       FIRESTORE: SAVE (debounced)
-    ============================================================ */
+    /* ---- Save (debounced) ---- */
     let saveTimeout = null;
     function saveData() {
         if (saveTimeout) clearTimeout(saveTimeout);
@@ -601,23 +362,15 @@ service cloud.firestore {
                 await setDoc(DOC_REF, schoolData, { merge: true });
             } catch (err) {
                 console.error("Firestore save error:", err);
-                // Don't spam alerts; log only
             }
         }, 400);
     }
 
-    /* ============================================================
-       FIRESTORE: REAL-TIME LISTENER
-    ============================================================ */
+    /* ---- Real-time listener ---- */
     function startFirestoreListener() {
         if (unsubscribe) unsubscribe();
         unsubscribe = onSnapshot(DOC_REF, (snapshot) => {
-            if (snapshot.exists()) {
-                schoolData = snapshot.data() || {};
-            } else {
-                schoolData = {};
-                setDoc(DOC_REF, schoolData).catch(err => console.error(err));
-            }
+            schoolData = snapshot.exists() ? (snapshot.data() || {}) : {};
             const classKeys = Object.keys(schoolData);
             if (!currentClass || !schoolData[currentClass]) {
                 currentClass = classKeys.length > 0 ? classKeys[0] : null;
@@ -652,9 +405,7 @@ service cloud.firestore {
         updateScheduleDisplay();
     }
 
-    /* ============================================================
-       STUDENT VIEW
-    ============================================================ */
+    /* ---- Student view ---- */
     function updateStudentClassSelector() {
         const selector = document.getElementById("studentClassSelector");
         selector.innerHTML = "";
@@ -664,9 +415,7 @@ service cloud.firestore {
             option.textContent = cls;
             selector.appendChild(option);
         });
-        if (currentClass && schoolData[currentClass]) {
-            selector.value = currentClass;
-        }
+        if (currentClass && schoolData[currentClass]) selector.value = currentClass;
     }
 
     function onStudentClassChange() {
@@ -677,10 +426,7 @@ service cloud.firestore {
 
     function updateStudentBadge() {
         const badge = document.getElementById("studentLessonBadge");
-        if (!currentClass || !schoolData[currentClass]) {
-            badge.textContent = "0 lessons";
-            return;
-        }
+        if (!currentClass || !schoolData[currentClass]) { badge.textContent = "0 lessons"; return; }
         const cls = schoolData[currentClass];
         const count = cls.lessons?.length || 0;
         badge.textContent = `${count} lesson${count !== 1 ? 's' : ''}`;
@@ -699,7 +445,6 @@ service cloud.firestore {
         dateRow.innerHTML += "<th>%</th>";
 
         body.innerHTML = "";
-
         if (!currentStudentAdmission && cls.students.length > 0) {
             currentStudentAdmission = cls.students[0].admission;
         }
@@ -707,8 +452,7 @@ service cloud.firestore {
 
         cls.students.forEach(student => {
             const isYou = (student.admission === highlightAdmission);
-            const rowClass = isYou ? 'highlight-you' : '';
-            let row = `<tr class="${rowClass}">`;
+            let row = `<tr class="${isYou ? 'highlight-you' : ''}">`;
             row += `<td>${student.admission}</td>`;
             row += `<td class="${isYou ? 'student-name-highlight' : ''}">${student.name} ${isYou ? '⭐ (You)' : ''}</td>`;
             cls.lessons?.forEach(l => {
@@ -723,9 +467,7 @@ service cloud.firestore {
         updateStudentBadge();
     }
 
-    /* ============================================================
-       TRAINER VIEW
-    ============================================================ */
+    /* ---- Trainer view ---- */
     function updateTrainerClassSelector() {
         const selector = document.getElementById("trainerClassSelector");
         selector.innerHTML = "";
@@ -735,9 +477,7 @@ service cloud.firestore {
             option.textContent = cls;
             selector.appendChild(option);
         });
-        if (currentClass && schoolData[currentClass]) {
-            selector.value = currentClass;
-        }
+        if (currentClass && schoolData[currentClass]) selector.value = currentClass;
     }
 
     function onTrainerClassChange() {
@@ -752,10 +492,7 @@ service cloud.firestore {
 
     function updateTrainerBadge() {
         const badge = document.getElementById("trainerLessonBadge");
-        if (!currentClass || !schoolData[currentClass]) {
-            badge.textContent = "0 lessons";
-            return;
-        }
+        if (!currentClass || !schoolData[currentClass]) { badge.textContent = "0 lessons"; return; }
         const cls = schoolData[currentClass];
         const count = cls.lessons?.length || 0;
         badge.textContent = `${count} lesson${count !== 1 ? 's' : ''}`;
@@ -763,10 +500,7 @@ service cloud.firestore {
 
     function updateScheduleDisplay() {
         const display = document.getElementById("scheduleListDisplay");
-        if (!currentClass || !schoolData[currentClass]) {
-            display.innerHTML = "";
-            return;
-        }
+        if (!currentClass || !schoolData[currentClass]) { display.innerHTML = ""; return; }
         const cls = schoolData[currentClass];
         const dayNames = { "1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri" };
         if (cls.schedules && cls.schedules.length > 0) {
@@ -820,9 +554,7 @@ service cloud.firestore {
         updateTrainerBadge();
     }
 
-    /* ============================================================
-       TRAINER LOGIN / LOGOUT
-    ============================================================ */
+    /* ---- Trainer login/logout ---- */
     function toggleTrainerMode() {
         if (isTrainer) return;
         const pwd = prompt("Enter trainer password:");
@@ -852,9 +584,7 @@ service cloud.firestore {
         updateStudentBadge();
     }
 
-    /* ============================================================
-       CLASS MANAGEMENT
-    ============================================================ */
+    /* ---- Class management ---- */
     function createClass() {
         const name = document.getElementById("newClassName").value.trim();
         if (!name) return alert("Enter a class name!");
@@ -863,19 +593,10 @@ service cloud.firestore {
         }
         currentClass = name;
         saveData();
-        updateStudentClassSelector();
-        updateTrainerClassSelector();
-        renderStudentTable();
-        renderTrainerTable();
-        updateStudentBadge();
-        updateTrainerBadge();
-        updateScheduleDisplay();
+        refreshAllUI();
         document.getElementById("newClassName").value = "";
     }
 
-    /* ============================================================
-       ADD STUDENT
-    ============================================================ */
     function addStudent() {
         if (!currentClass) return alert("Select a class first!");
         const name = document.getElementById("studentName").value.trim();
@@ -885,9 +606,7 @@ service cloud.firestore {
         if (cls.students.some(s => s.admission === admission)) return alert("Admission number already exists!");
         cls.students.push({ name, admission });
         cls.attendance[admission] = {};
-        if (cls.lessons) {
-            cls.lessons.forEach(l => { cls.attendance[admission][l] = false; });
-        }
+        if (cls.lessons) cls.lessons.forEach(l => { cls.attendance[admission][l] = false; });
         saveData();
         renderTrainerTable();
         renderStudentTable();
@@ -895,9 +614,6 @@ service cloud.firestore {
         document.getElementById("admissionNumber").value = "";
     }
 
-    /* ============================================================
-       TIMETABLE & LESSON GENERATION
-    ============================================================ */
     function addSchedule() {
         if (!currentClass) return alert("Select class first!");
         const cls = schoolData[currentClass];
@@ -918,13 +634,11 @@ service cloud.firestore {
             alert("Please add at least one schedule (day + period) before generating lessons.");
             return;
         }
-
         cls.lessons = [];
         const targetCount = 36;
         let currentDate = new Date();
         let daysChecked = 0;
         const maxDays = 365;
-
         while (cls.lessons.length < targetCount && daysChecked < maxDays) {
             const dayOfWeek = currentDate.getDay();
             const scheduleDay = (dayOfWeek >= 1 && dayOfWeek <= 5) ? dayOfWeek : null;
@@ -940,13 +654,11 @@ service cloud.firestore {
             currentDate.setDate(currentDate.getDate() + 1);
             daysChecked++;
         }
-
         if (cls.lessons.length < targetCount) {
             alert(`Only ${cls.lessons.length} lessons generated. Add more schedules or periods.`);
         } else {
             alert(`✅ 36 lessons generated!`);
         }
-
         cls.students.forEach(student => {
             if (!cls.attendance[student.admission]) cls.attendance[student.admission] = {};
             cls.lessons.forEach(lesson => {
@@ -954,7 +666,6 @@ service cloud.firestore {
                     cls.attendance[student.admission][lesson] = false;
             });
         });
-
         saveData();
         renderTrainerTable();
         renderStudentTable();
@@ -975,9 +686,6 @@ service cloud.firestore {
         updateStudentBadge();
     }
 
-    /* ============================================================
-       TOGGLE ATTENDANCE (with 3-day lock)
-    ============================================================ */
     function toggleAttendance(admission, lesson) {
         if (!isTrainer) {
             alert("Only trainers can modify attendance.");
@@ -992,19 +700,15 @@ service cloud.firestore {
         const cls = schoolData[currentClass];
         if (!cls.attendance[admission]) cls.attendance[admission] = {};
         cls.attendance[admission][lesson] = !cls.attendance[admission][lesson];
-
         const student = cls.students.find(s => s.admission === admission);
         const status = cls.attendance[admission][lesson] ? "Present" : "Absent";
         sendToGoogleForm(currentClass, admission, student.name, lesson, status);
-
         saveData();
         renderTrainerTable();
         renderStudentTable();
     }
 
-    /* ============================================================
-       GOOGLE FORM
-    ============================================================ */
+    /* ---- Google Form ---- */
     const googleFormURL = "https://docs.google.com/forms/d/e/1FAIpQLScPUasc-yRAGVqQeiTWEA9o9BBg_MPepkI8euYhy3ewq6KXag/formResponse";
     const formEntryIDs = {
         class: "entry.1907783482",
@@ -1023,16 +727,13 @@ service cloud.firestore {
         setTimeout(() => document.body.removeChild(iframe), 5000);
     }
 
-    /* ============================================================
-       DOWNLOAD CSV
-    ============================================================ */
+    /* ---- CSV ---- */
     function downloadCSV() {
         if (!currentClass) return alert("Select a class first!");
         const cls = schoolData[currentClass];
         let csv = "Admission Number,Student Name";
         cls.lessons.forEach(lesson => csv += `,${lesson}`);
         csv += ",Attendance %\n";
-
         cls.students.forEach(student => {
             let row = `${student.admission},${student.name}`;
             cls.lessons.forEach(lesson => {
@@ -1044,7 +745,6 @@ service cloud.firestore {
             row += `,${percentage}%\n`;
             csv += row;
         });
-
         const blob = new Blob([csv], { type: "text/csv" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -1052,65 +752,39 @@ service cloud.firestore {
         link.click();
     }
 
-    /* ============================================================
-       INITIALIZATION (with bullet-proof error handling)
-    ============================================================ */
-    async function initializeApp() {
+    /* ---- Init ---- */
+    async function initializeAppOnce() {
         try {
             console.log("▶ initializeApp started");
-            console.log("▶ Project:", firebaseConfig.projectId);
-            console.log("▶ Doc path:", DOC_REF.path);
-
-            // Set a timeout in case getDoc hangs
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Firebase did not respond within 15 seconds. Check your internet connection or Firestore rules.")), 15000)
+                setTimeout(() => reject(new Error("Firebase did not respond within 15 seconds.")), 15000)
             );
-
             const snap = await Promise.race([getDoc(DOC_REF), timeoutPromise]);
             console.log("▶ getDoc returned, exists =", snap.exists());
 
             if (!snap.exists()) {
-                console.log("▶ No document exists; creating empty one");
                 await setDoc(DOC_REF, {});
                 schoolData = {};
             } else {
                 schoolData = snap.data() || {};
-                console.log("▶ Loaded schoolData keys:", Object.keys(schoolData));
             }
 
             const classKeys = Object.keys(schoolData);
             currentClass = classKeys.length > 0 ? classKeys[0] : null;
 
-            // Hide loading, show app
             document.getElementById("loadingOverlay").classList.add("hidden");
             document.getElementById("mainApp").style.display = "block";
 
             refreshAllUI();
             startFirestoreListener();
             console.log("✅ App initialized successfully");
-
         } catch (err) {
             console.error("❌ Initialization error:", err);
-            // Always display the error — bulletproof
-            try {
-                showError("Failed to Connect to Firebase", err);
-            } catch (displayErr) {
-                // Absolute last resort: raw alert + text
-                console.error("Even showError failed:", displayErr);
-                alert("❌ Firebase error: " + (err && err.message ? err.message : String(err)));
-                document.getElementById("loadingOverlay").innerHTML =
-                    `<div style="color:#fff;padding:30px;text-align:center;">
-                        ❌ Firebase connection failed<br>
-                        <small>${String(err && err.message ? err.message : err)}</small><br><br>
-                        <button onclick="location.reload()" style="background:maroon;color:white;padding:10px 20px;border:none;border-radius:8px;">Retry</button>
-                    </div>`;
-            }
+            showError("Failed to Connect to Firebase", err);
         }
     }
 
-    /* ============================================================
-       EXPOSE FUNCTIONS TO HTML
-    ============================================================ */
+    /* ---- Expose to HTML ---- */
     window.toggleAttendance = toggleAttendance;
     window.toggleTrainerMode = toggleTrainerMode;
     window.logoutTrainer = logoutTrainer;
@@ -1123,7 +797,7 @@ service cloud.firestore {
     window.onStudentClassChange = onStudentClassChange;
     window.onTrainerClassChange = onTrainerClassChange;
 
-    initializeApp();
+    initializeAppOnce();
 </script>
 
 </body>
