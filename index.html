@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance · Student & Trainer View (Firebase)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: "Times New Roman", serif;
+            background: linear-gradient(rgba(11, 31, 107, 0.9), rgba(11, 31, 107, 0.7));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.10);
+            backdrop-filter: blur(16px);
+            padding: 30px 35px;
+            border-radius: 30px;
+            width: 98%;
+            max-width: 1500px;
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.5);
+            color: white;
+            margin: 20px 0;
+        }
+
+        h2, h3 {
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            margin-top: 0;
+        }
+
+        hr {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 20px 0;
+        }
+
+        input, select {
+            padding: 10px 14px;
+            margin: 5px 5px 5px 0;
+            border-radius: 10px;
+            border: none;
+            font-size: 1rem;
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: maroon;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: 0.2s;
+            margin: 5px 5px 5px 0;
+        }
+
+        button:hover {
+            background: #800000;
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-trainer {
+            background: #0b1f6b;
+        }
+        .btn-trainer:hover {
+            background: #071545;
+        }
+
+        .btn-logout {
+            background: #4a1c1c;
+        }
+        .btn-logout:hover {
+            background: #2e0f0f;
+        }
+
+        .badge {
+            background: #0b1f6b;
+            padding: 5px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .badge-warning {
+            background: #ffc107;
+            color: #0b1f6b;
+            font-weight: bold;
+        }
+
+        .scroll-container {
+            overflow-x: auto;
+            margin-top: 15px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            color: #111;
+            font-size: 0.9rem;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        th {
+            background: maroon;
+            color: white;
+            padding: 8px 6px;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .lesson-header {
+            font-size: 0.7rem;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            max-height: 90px;
+            white-space: nowrap;
+            padding: 6px 2px;
+            font-weight: 400;
+        }
+
+        .highlight-you {
+            background: #fff3cd !important;
+            font-weight: bold;
+        }
+
+        .student-name-highlight {
+            background: #fff3cd;
+            font-weight: bold;
+        }
+
+        .info-note {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 10px;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            background: #ffc107;
+            color: #0b1f6b;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .trainer-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .small-input {
+            width: 180px;
+        }
+
+        .attendance-check {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: maroon;
+        }
+
+        .attendance-check:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .locked-cell {
+            background: #f8d7da;
+            position: relative;
+        }
+
+        .locked-cell::after {
+            content: "🔒";
+            font-size: 0.7rem;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+        }
+
+        .past-lock-note {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            border-left: 4px solid #dc3545;
+        }
+
+        .schedule-list {
+            margin-top: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .schedule-list span {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin: 3px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11,31,107,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+            font-size: 1.5rem;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .loading-overlay.hidden {
+            display: none;
+        }
+        .spinner {
+            border: 6px solid rgba(255,255,255,0.3);
+            border-top: 6px solid #ffc107;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div>Connecting to Firebase…</div>
+</div>
+
+<div class="main-card" id="mainApp" style="display:none;">
+
+    <!-- ================= HEADER ================= -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <h2>📋 ATTENDANCE MANAGEMENT · 36 LESSONS</h2>
+        <div>
+            <span id="roleLabel" class="role-badge">👤 Student</span>
+            <button id="trainerToggleBtn" class="btn-trainer" onclick="toggleTrainerMode()">🔐 Trainer Login</button>
+            <button id="logoutBtn" class="btn-logout" onclick="logoutTrainer()" style="display:none;">Logout</button>
+        </div>
+    </div>
+
+    <!-- ================= STUDENT VIEW ================= -->
+    <div id="studentView">
+
+        <div class="info-note">
+            👋 Welcome! Select a class below to view the full attendance register.
+            Your name is <strong>highlighted</strong> in the table.
+        </div>
+
+        <div class="flex-row">
+            <label style="font-size:1.1rem;">📚 Select Class:</label>
+            <select id="studentClassSelector" onchange="onStudentClassChange()" style="min-width:200px;"></select>
+            <span class="badge" id="studentLessonBadge">0 lessons</span>
+        </div>
+
+        <div class="scroll-container">
+            <table>
+                <thead>
+                    <tr id="studentDateRow">
+                        <th>Admission No.</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody"></tbody>
+            </table>
+        </div>
+
+        <p style="margin-top:15px; font-size:0.95rem; opacity:0.85;">
+            ✅ = Present &nbsp; | &nbsp; ❌ = Absent &nbsp; | &nbsp; % = Attendance percentage
+        </p>
+    </div>
+
+    <!-- ================= TRAINER VIEW ================= -->
+    <div id="trainerView" style="display:none;">
+
+        <div class="trainer-panel">
+
+            <h3>🔧 Trainer Management Panel</h3>
+
+            <h4>Class Management</h4>
+            <div class="flex-row">
+                <input type="text" id="newClassName" placeholder="Enter Class Name" class="small-input">
+                <button onclick="createClass()">➕ Create Class</button>
+                <select id="trainerClassSelector" onchange="onTrainerClassChange()" style="min-width:180px;"></select>
+            </div>
+
+            <hr>
+
+            <h4>Add Student</h4>
+            <div class="flex-row">
+                <input type="text" id="studentName" placeholder="Student Name">
+                <input type="text" id="admissionNumber" placeholder="Admission Number">
+                <button onclick="addStudent()">➕ Add Student</button>
+            </div>
+
+            <hr>
+
+            <h4>Set Timetable & Generate 36 Lessons</h4>
+            <div class="flex-row">
+                <select id="classDay">
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                </select>
+                <select id="period">
+                    <option value="1">Period 1</option>
+                    <option value="2">Period 2</option>
+                    <option value="3">Period 3</option>
+                    <option value="4">Period 4</option>
+                </select>
+                <button onclick="addSchedule()">➕ Add Schedule</button>
+                <button onclick="generate36Lessons()" style="background:#0b1f6b;">⚡ Generate 36 Lessons</button>
+                <span class="badge" id="trainerLessonBadge">0 lessons</span>
+                <button onclick="resetLessons()" class="btn-logout">🗑️ Clear Lessons</button>
+            </div>
+
+            <div id="scheduleListDisplay" class="schedule-list"></div>
+
+            <hr>
+
+            <h4>Attendance Register (Trainer – click to toggle)</h4>
+            <div id="lockNotice" class="past-lock-note" style="display:none;">
+                🔒 Lessons older than 3 days are locked and cannot be modified.
+            </div>
+            <div class="scroll-container">
+                <table>
+                    <thead>
+                        <tr id="trainerDateRow">
+                            <th>Admission No.</th>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trainerTableBody"></tbody>
+                </table>
+            </div>
+
+            <br>
+            <button onclick="downloadCSV()">📥 Download Attendance CSV</button>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+    /* ============================================================
+       FIREBASE IMPORTS & CONFIG
+    ============================================================ */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot }
+        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAcdt4oap5wg7C-YVLSNyhbZS6BUGgBlB8",
+        authDomain: "attendance-a09e4.firebaseapp.com",
+        projectId: "attendance-a09e4",
+        storageBucket: "attendance-a09e4.firebasestorage.app",
+        messagingSenderId: "751279033087",
+        appId: "1:751279033087:web:c71ff5ff1b8cb9a8239aca",
+        measurementId: "G-2P244ZFEZR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    /* ============================================================
+       GLOBAL STATE
+    ============================================================ */
+    let schoolData = {};            // full state from Firestore
+    let currentClass = null;        // selected class name
+    let isTrainer = false;
+    let currentStudentAdmission = null;
+    let unsubscribe = null;         // Firestore listener
+
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+    const DOC_REF = doc(db, "attendanceSystem", "schoolData");
+
+    /* ============================================================
+       HELPERS
+    ============================================================ */
+    function formatLessonDisplay(lessonKey) {
+        const parts = lessonKey.split('_');
+        const datePart = parts[0];
+        const periodPart = parts[1] || '';
+        if (datePart && periodPart) {
+            const d = new Date(datePart + 'T00:00:00');
+            if (!isNaN(d)) {
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                return `${day}/${month} ${periodPart}`;
+            }
+        }
+        return lessonKey;
+    }
+
+    function isLessonLocked(lessonKey) {
+        const parts = lessonKey.split('_');
+        const datePart = parts[0];
+        if (!datePart) return false;
+        const lessonDate = new Date(datePart + 'T00:00:00');
+        if (isNaN(lessonDate)) return false;
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        return (now - lessonDate) > THREE_DAYS_MS;
+    }
+
+    function calculatePercentageForStudent(student, cls) {
+        const total = cls.lessons?.length || 0;
+        if (total === 0) return 0;
+        const present = cls.lessons.filter(l => cls.attendance[student.admission]?.[l]).length;
+        return ((present / total) * 100).toFixed(1);
+    }
+
+    /* ============================================================
+       FIRESTORE: SAVE (debounced writes)
+    ============================================================ */
+    let saveTimeout = null;
+    function saveData() {
+        // Debounce to avoid rapid writes during batch operations
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(async () => {
+            try {
+                await setDoc(DOC_REF, schoolData, { merge: true });
+            } catch (err) {
+                console.error("Firestore save error:", err);
+                alert("⚠️ Could not save to Firebase. Check your connection.");
+            }
+        }, 400);
+    }
+
+    /* ============================================================
+       FIRESTORE: REAL-TIME LISTENER
+    ============================================================ */
+    function startFirestoreListener() {
+        if (unsubscribe) unsubscribe();
+        unsubscribe = onSnapshot(DOC_REF, (snapshot) => {
+            if (snapshot.exists()) {
+                schoolData = snapshot.data() || {};
+            } else {
+                // First time: initialize empty structure
+                schoolData = {};
+                setDoc(DOC_REF, schoolData).catch(err => console.error(err));
+            }
+            // Ensure currentClass is valid
+            const classKeys = Object.keys(schoolData);
+            if (!currentClass || !schoolData[currentClass]) {
+                currentClass = classKeys.length > 0 ? classKeys[0] : null;
+            }
+            // Ensure attendance defaults
+            if (currentClass && schoolData[currentClass]) {
+                const cls = schoolData[currentClass];
+                if (cls.lessons) {
+                    cls.students.forEach(student => {
+                        if (!cls.attendance[student.admission]) cls.attendance[student.admission] = {};
+                        cls.lessons.forEach(l => {
+                            if (cls.attendance[student.admission][l] === undefined) {
+                                cls.attendance[student.admission][l] = false;
+                            }
+                        });
+                    });
+                }
+            }
+            // Refresh UI
+            refreshAllUI();
+        }, (err) => {
+            console.error("Firestore listen error:", err);
+            alert("❌ Could not connect to Firebase. Please refresh the page.");
+        });
+    }
+
+    function refreshAllUI() {
+        updateStudentClassSelector();
+        updateTrainerClassSelector();
+        renderStudentTable();
+        renderTrainerTable();
+        updateStudentBadge();
+        updateTrainerBadge();
+        updateScheduleDisplay();
+    }
+
+    /* ============================================================
+       STUDENT VIEW
+    ============================================================ */
+    function updateStudentClassSelector() {
+        const selector = document.getElementById("studentClassSelector");
+        selector.innerHTML = "";
+        Object.keys(schoolData).forEach(cls => {
+            const option = document.createElement("option");
+            option.value = cls;
+            option.textContent = cls;
+            selector.appendChild(option);
+        });
+        if (currentClass && schoolData[currentClass]) {
+            selector.value = currentClass;
+        }
+    }
+
+    function onStudentClassChange() {
+        currentClass = document.getElementById("studentClassSelector").value;
+        renderStudentTable();
+        updateStudentBadge();
+    }
+
+    function updateStudentBadge() {
+        const badge = document.getElementById("studentLessonBadge");
+        if (!currentClass || !schoolData[currentClass]) {
+            badge.textContent = "0 lessons";
+            return;
+        }
+        const cls = schoolData[currentClass];
+        const count = cls.lessons?.length || 0;
+        badge.textContent = `${count} lesson${count !== 1 ? 's' : ''}`;
+    }
+
+    function renderStudentTable() {
+        if (!currentClass || !schoolData[currentClass]) return;
+        const cls = schoolData[currentClass];
+        const dateRow = document.getElementById("studentDateRow");
+        const body = document.getElementById("studentTableBody");
+
+        dateRow.innerHTML = "<th>Admission No.</th><th>Name</th>";
+        cls.lessons?.forEach(l => {
+            dateRow.innerHTML += `<th><div class="lesson-header">${formatLessonDisplay(l)}</div></th>`;
+        });
+        dateRow.innerHTML += "<th>%</th>";
+
+        body.innerHTML = "";
+
+        // Determine highlight
+        if (!currentStudentAdmission && cls.students.length > 0) {
+            currentStudentAdmission = cls.students[0].admission;
+        }
+        const highlightAdmission = currentStudentAdmission;
+
+        cls.students.forEach(student => {
+            const isYou = (student.admission === highlightAdmission);
+            const rowClass = isYou ? 'highlight-you' : '';
+            let row = `<tr class="${rowClass}">`;
+            row += `<td>${student.admission}</td>`;
+            row += `<td class="${isYou ? 'student-name-highlight' : ''}">${student.name} ${isYou ? '⭐ (You)' : ''}</td>`;
+            cls.lessons?.forEach(l => {
+                const present = cls.attendance[student.admission]?.[l] ? true : false;
+                row += `<td><input type="checkbox" ${present ? 'checked' : ''} disabled class="attendance-check" style="pointer-events:none;"></td>`;
+            });
+            row += `<td><strong>${calculatePercentageForStudent(student, cls)}%</strong></td>`;
+            row += `</tr>`;
+            body.innerHTML += row;
+        });
+
+        updateStudentBadge();
+    }
+
+    /* ============================================================
+       TRAINER VIEW
+    ============================================================ */
+    function updateTrainerClassSelector() {
+        const selector = document.getElementById("trainerClassSelector");
+        selector.innerHTML = "";
+        Object.keys(schoolData).forEach(cls => {
+            const option = document.createElement("option");
+            option.value = cls;
+            option.textContent = cls;
+            selector.appendChild(option);
+        });
+        if (currentClass && schoolData[currentClass]) {
+            selector.value = currentClass;
+        }
+    }
+
+    function onTrainerClassChange() {
+        currentClass = document.getElementById("trainerClassSelector").value;
+        renderTrainerTable();
+        updateTrainerBadge();
+        updateScheduleDisplay();
+        updateStudentClassSelector();
+        renderStudentTable();
+        updateStudentBadge();
+    }
+
+    function updateTrainerBadge() {
+        const badge = document.getElementById("trainerLessonBadge");
+        if (!currentClass || !schoolData[currentClass]) {
+            badge.textContent = "0 lessons";
+            return;
+        }
+        const cls = schoolData[currentClass];
+        const count = cls.lessons?.length || 0;
+        badge.textContent = `${count} lesson${count !== 1 ? 's' : ''}`;
+    }
+
+    function updateScheduleDisplay() {
+        const display = document.getElementById("scheduleListDisplay");
+        if (!currentClass || !schoolData[currentClass]) {
+            display.innerHTML = "";
+            return;
+        }
+        const cls = schoolData[currentClass];
+        const dayNames = { "1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri" };
+        if (cls.schedules && cls.schedules.length > 0) {
+            display.innerHTML = "📅 Schedules: " + cls.schedules.map(s =>
+                `<span>${dayNames[s.day] || s.day} · Period ${s.period}</span>`
+            ).join("");
+        } else {
+            display.innerHTML = "📅 No schedules added yet.";
+        }
+    }
+
+    function renderTrainerTable() {
+        if (!currentClass || !schoolData[currentClass]) return;
+        const cls = schoolData[currentClass];
+        const dateRow = document.getElementById("trainerDateRow");
+        const body = document.getElementById("trainerTableBody");
+        const lockNotice = document.getElementById("lockNotice");
+
+        dateRow.innerHTML = "<th>Admission No.</th><th>Name</th>";
+        let hasLocked = false;
+
+        cls.lessons?.forEach(l => {
+            const locked = isLessonLocked(l);
+            if (locked) hasLocked = true;
+            const icon = locked ? ' 🔒' : '';
+            dateRow.innerHTML += `<th><div class="lesson-header">${formatLessonDisplay(l)}${icon}</div></th>`;
+        });
+        dateRow.innerHTML += "<th>%</th>";
+
+        lockNotice.style.display = hasLocked ? "block" : "none";
+        body.innerHTML = "";
+
+        cls.students.forEach(student => {
+            let row = `<tr>`;
+            row += `<td>${student.admission}</td>`;
+            row += `<td>${student.name}</td>`;
+            cls.lessons?.forEach(l => {
+                const present = cls.attendance[student.admission]?.[l] ? true : false;
+                const locked = isLessonLocked(l);
+                const disabledAttr = locked ? 'disabled' : '';
+                const lockedClass = locked ? 'locked-cell' : '';
+                const titleAttr = locked ? 'title="This lesson is older than 3 days and cannot be modified."' : '';
+                row += `<td class="${lockedClass}"><input type="checkbox" ${present ? 'checked' : ''} ${disabledAttr}
+                        class="attendance-check" onchange="window.toggleAttendance('${student.admission}','${l}')" ${titleAttr}></td>`;
+            });
+            row += `<td><strong>${calculatePercentageForStudent(student, cls)}%</strong></td>`;
+            row += `</tr>`;
+            body.innerHTML += row;
+        });
+
+        updateTrainerBadge();
+    }
+
+    /* ============================================================
+       TRAINER LOGIN / LOGOUT
+    ============================================================ */
+    function toggleTrainerMode() {
+        if (isTrainer) return;
+        const pwd = prompt("Enter trainer password:");
+        if (pwd === "cornel") {
+            isTrainer = true;
+            document.getElementById("studentView").style.display = "none";
+            document.getElementById("trainerView").style.display = "block";
+            document.getElementById("roleLabel").textContent = "🔧 Trainer";
+            document.getElementById("trainerToggleBtn").style.display = "none";
+            document.getElementById("logoutBtn").style.display = "inline-block";
+            renderTrainerTable();
+            updateTrainerBadge();
+            updateScheduleDisplay();
+        } else {
+            alert("Incorrect password.");
+        }
+    }
+
+    function logoutTrainer() {
+        isTrainer = false;
+        document.getElementById("studentView").style.display = "block";
+        document.getElementById("trainerView").style.display = "none";
+        document.getElementById("roleLabel").textContent = "👤 Student";
+        document.getElementById("trainerToggleBtn").style.display = "inline-block";
+        document.getElementById("logoutBtn").style.display = "none";
+        renderStudentTable();
+        updateStudentBadge();
+    }
+
+    /* ============================================================
+       CLASS MANAGEMENT
+    ============================================================ */
+    function createClass() {
+        const name = document.getElementById("newClassName").value.trim();
+        if (!name) return alert("Enter a class name!");
+        if (!schoolData[name]) {
+            schoolData[name] = { students: [], schedules: [], lessons: [], attendance: {} };
+        }
+        currentClass = name;
+        saveData();
+        updateStudentClassSelector();
+        updateTrainerClassSelector();
+        renderStudentTable();
+        renderTrainerTable();
+        updateStudentBadge();
+        updateTrainerBadge();
+        updateScheduleDisplay();
+        document.getElementById("newClassName").value = "";
+    }
+
+    /* ============================================================
+       ADD STUDENT
+    ============================================================ */
+    function addStudent() {
+        if (!currentClass) return alert("Select a class first!");
+        const name = document.getElementById("studentName").value.trim();
+        const admission = document.getElementById("admissionNumber").value.trim();
+        if (!name || !admission) return alert("Enter student name and admission number!");
+        const cls = schoolData[currentClass];
+        if (cls.students.some(s => s.admission === admission)) return alert("Admission number already exists!");
+        cls.students.push({ name, admission });
+        cls.attendance[admission] = {};
+        if (cls.lessons) {
+            cls.lessons.forEach(l => { cls.attendance[admission][l] = false; });
+        }
+        saveData();
+        renderTrainerTable();
+        renderStudentTable();
+        document.getElementById("studentName").value = "";
+        document.getElementById("admissionNumber").value = "";
+    }
+
+    /* ============================================================
+       TIMETABLE & LESSON GENERATION
+    ============================================================ */
+    function addSchedule() {
+        if (!currentClass) return alert("Select class first!");
+        const cls = schoolData[currentClass];
+        const day = document.getElementById("classDay").value;
+        const period = document.getElementById("period").value;
+        if (cls.schedules.some(s => s.day === day && s.period === period))
+            return alert("This schedule already exists!");
+        cls.schedules.push({ day, period });
+        saveData();
+        updateScheduleDisplay();
+        alert("Schedule added successfully.");
+    }
+
+    function generate36Lessons() {
+        if (!currentClass) return alert("Select a class first!");
+        const cls = schoolData[currentClass];
+        if (!cls.schedules || cls.schedules.length === 0) {
+            alert("Please add at least one schedule (day + period) before generating lessons.");
+            return;
+        }
+
+        cls.lessons = [];
+        const targetCount = 36;
+        let currentDate = new Date();
+        let daysChecked = 0;
+        const maxDays = 365;
+
+        while (cls.lessons.length < targetCount && daysChecked < maxDays) {
+            const dayOfWeek = currentDate.getDay();
+            const scheduleDay = (dayOfWeek >= 1 && dayOfWeek <= 5) ? dayOfWeek : null;
+            if (scheduleDay !== null) {
+                cls.schedules.forEach(sched => {
+                    if (parseInt(sched.day) === scheduleDay && cls.lessons.length < targetCount) {
+                        const dateStr = currentDate.toISOString().split("T")[0];
+                        const key = `${dateStr}_P${sched.period}`;
+                        if (!cls.lessons.includes(key)) cls.lessons.push(key);
+                    }
+                });
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+            daysChecked++;
+        }
+
+        if (cls.lessons.length < targetCount) {
+            alert(`Only ${cls.lessons.length} lessons generated. Add more schedules or periods.`);
+        } else {
+            alert(`✅ 36 lessons generated!`);
+        }
+
+        cls.students.forEach(student => {
+            if (!cls.attendance[student.admission]) cls.attendance[student.admission] = {};
+            cls.lessons.forEach(lesson => {
+                if (cls.attendance[student.admission][lesson] === undefined)
+                    cls.attendance[student.admission][lesson] = false;
+            });
+        });
+
+        saveData();
+        renderTrainerTable();
+        renderStudentTable();
+        updateTrainerBadge();
+        updateStudentBadge();
+    }
+
+    function resetLessons() {
+        if (!currentClass) return;
+        if (!confirm("Delete all lessons and attendance marks for this class?")) return;
+        const cls = schoolData[currentClass];
+        cls.lessons = [];
+        cls.students.forEach(student => { cls.attendance[student.admission] = {}; });
+        saveData();
+        renderTrainerTable();
+        renderStudentTable();
+        updateTrainerBadge();
+        updateStudentBadge();
+    }
+
+    /* ============================================================
+       TOGGLE ATTENDANCE (with 3-day lock)
+    ============================================================ */
+    function toggleAttendance(admission, lesson) {
+        if (!isTrainer) {
+            alert("Only trainers can modify attendance.");
+            renderTrainerTable();
+            return;
+        }
+        if (isLessonLocked(lesson)) {
+            alert("⛔ This lesson is older than 3 days and cannot be modified.");
+            renderTrainerTable();
+            return;
+        }
+        const cls = schoolData[currentClass];
+        if (!cls.attendance[admission]) cls.attendance[admission] = {};
+        cls.attendance[admission][lesson] = !cls.attendance[admission][lesson];
+
+        const student = cls.students.find(s => s.admission === admission);
+        const status = cls.attendance[admission][lesson] ? "Present" : "Absent";
+        sendToGoogleForm(currentClass, admission, student.name, lesson, status);
+
+        saveData();
+        // UI updates through onSnapshot listener, but re-render locally for instant feedback
+        renderTrainerTable();
+        renderStudentTable();
+    }
+
+    /* ============================================================
+       GOOGLE FORM (kept from original)
+    ============================================================ */
+    const googleFormURL = "https://docs.google.com/forms/d/e/1FAIpQLScPUasc-yRAGVqQeiTWEA9o9BBg_MPepkI8euYhy3ewq6KXag/formResponse";
+    const formEntryIDs = {
+        class: "entry.1907783482",
+        admission: "entry.1285834345",
+        name: "entry.1681246038",
+        lesson: "entry.1206936769",
+        status: "entry.631605831"
+    };
+
+    function sendToGoogleForm(clsName, admission, studentName, lesson, status) {
+        const url = `${googleFormURL}?${formEntryIDs.class}=${encodeURIComponent(clsName)}&${formEntryIDs.admission}=${encodeURIComponent(admission)}&${formEntryIDs.name}=${encodeURIComponent(studentName)}&${formEntryIDs.lesson}=${encodeURIComponent(lesson)}&${formEntryIDs.status}=${encodeURIComponent(status)}`;
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        setTimeout(() => document.body.removeChild(iframe), 5000);
+    }
+
+    /* ============================================================
+       DOWNLOAD CSV
+    ============================================================ */
+    function downloadCSV() {
+        if (!currentClass) return alert("Select a class first!");
+        const cls = schoolData[currentClass];
+        let csv = "Admission Number,Student Name";
+        cls.lessons.forEach(lesson => csv += `,${lesson}`);
+        csv += ",Attendance %\n";
+
+        cls.students.forEach(student => {
+            let row = `${student.admission},${student.name}`;
+            cls.lessons.forEach(lesson => {
+                row += `,${cls.attendance[student.admission]?.[lesson] ? "Present" : "Absent"}`;
+            });
+            const total = cls.lessons.length;
+            const present = cls.lessons.filter(l => cls.attendance[student.admission]?.[l]).length;
+            const percentage = total === 0 ? 0 : ((present / total) * 100).toFixed(1);
+            row += `,${percentage}%\n`;
+            csv += row;
+        });
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = currentClass + "_Attendance_36Lessons.csv";
+        link.click();
+    }
+
+    /* ============================================================
+       INITIALIZATION
+    ============================================================ */
+    async function initializeApp() {
+        try {
+            // Load initial data once
+            const snap = await getDoc(DOC_REF);
+            if (!snap.exists()) {
+                await setDoc(DOC_REF, {});
+                schoolData = {};
+            } else {
+                schoolData = snap.data() || {};
+            }
+
+            // Set up default current class
+            const classKeys = Object.keys(schoolData);
+            if (classKeys.length > 0) {
+                currentClass = classKeys[0];
+            } else {
+                currentClass = null;
+            }
+
+            // Hide loading, show app
+            document.getElementById("loadingOverlay").classList.add("hidden");
+            document.getElementById("mainApp").style.display = "block";
+
+            // Initial render
+            refreshAllUI();
+
+            // Start real-time listener (keeps data synced across devices)
+            startFirestoreListener();
+
+        } catch (err) {
+            console.error("Initialization error:", err);
+            document.getElementById("loadingOverlay").innerHTML =
+                `<div style="color:#ffc107; text-align:center; padding:20px;">
+                    ❌ Failed to connect to Firebase.<br>
+                    <small>${err.message}</small><br><br>
+                    <button onclick="location.reload()" style="background:maroon;">Retry</button>
+                </div>`;
+        }
+    }
+
+    /* ============================================================
+       EXPOSE FUNCTIONS TO HTML (inline onclick handlers)
+    ============================================================ */
+    window.toggleAttendance = toggleAttendance;
+    window.toggleTrainerMode = toggleTrainerMode;
+    window.logoutTrainer = logoutTrainer;
+    window.createClass = createClass;
+    window.addStudent = addStudent;
+    window.addSchedule = addSchedule;
+    window.generate36Lessons = generate36Lessons;
+    window.resetLessons = resetLessons;
+    window.downloadCSV = downloadCSV;
+    window.onStudentClassChange = onStudentClassChange;
+    window.onTrainerClassChange = onTrainerClassChange;
+
+    initializeApp();
+</script>
+
+</body>
+</html>
